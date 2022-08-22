@@ -1,4 +1,4 @@
-function update_suitesparse_groups(pkg)
+function update_suitesparse_groups(pkg, ss_index)
 % Generate the matrix generators in ephemeral groups.
   if ~exist(pkg.ss_matfiles_dir)
     mkdir(pkg.ss_matfiles_dir);

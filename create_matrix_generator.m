@@ -35,7 +35,9 @@ function properties = create_matrix_property_array(pkg, ss_index, curr_mat)
   svd_matfile_name = [pkg.ss_matfiles_dir filesep...
                       curr_mat.matrix_ID '_SVD.mat'];
   try
-    websave(svd_matfile_name, svd_matfile_url);
+    if ~exist(svd_matfile_name, 'file')
+      websave(svd_matfile_name, svd_matfile_url);
+    end
     curr_mat.has_svd = true;
     tmp = load(svd_matfile_name);
     curr_mat.sigma_min = min(tmp.S.s);
@@ -46,7 +48,6 @@ function properties = create_matrix_property_array(pkg, ss_index, curr_mat)
 
   candidates = prop_list();
   properties = {};
-  % warning('off', 'MATLAB:str2func:invalidFunctionName');
   for j = 1:length(candidates)
     curr_property = candidates{j};
     curr_normalized_property = strrep(...
@@ -58,8 +59,6 @@ function properties = create_matrix_property_array(pkg, ss_index, curr_mat)
       properties{end+1} = curr_property;
     end
   end
-  properties
-  % warning('on', 'MATLAB:str2func:invalidFunctionName');
 end
 
 function out = is_banded(curr_mat, ss_index)

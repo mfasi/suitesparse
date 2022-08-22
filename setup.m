@@ -6,5 +6,5 @@ function setup()
   ss_index = update_and_load_index(pkg);
 
   % Create all group directories.
-  update_suitesparse_groups(pkg);
+  update_suitesparse_groups(pkg, ss_index);
 end
