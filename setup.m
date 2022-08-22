@@ -1,16 +1,9 @@
 function setup()
-  pkg.ss_url = 'https://sparse.tamu.edu';
-  pkg.anymatrix_root_dir = fileparts(which('anymatrix'));
-  pkg.ss_private_root_dir = fileparts(mfilename('fullpath'));
-  pkg.ss_matfiles_dir = [pkg.ss_private_root_dir filesep 'matfiles'];
+
+  pkg = get_pkg_info();
 
   % Download and load index.
-  index_filename = 'ss_index.mat';
-  index_file_url = [pkg.ss_url '/files/' index_filename];
-  index_file_path = [pkg.ss_private_root_dir filesep index_filename];
-  websave(index_file_path, index_file_url);
-  tmp = load(index_filename); % Contains struct ss_index.
-  ss_index = tmp.ss_index;
+  ss_index = download_and_load_index(pkg);
 
   % Check if update is needed using a file that contains a timestamp.
   timestamp_filename = './timestamp';
@@ -36,7 +29,7 @@ function setup()
     mkdir(pkg.ss_matfiles_dir);
   end
   n_matrices = length(ss_index.Group);
-  for i = 1:10 % n_matrices
+  for i = 1:n_matrices
     curr_mat.index = i;
     curr_mat.group_ID = ss_index.Group{i};
     curr_mat.matrix_ID = ss_index.Name{i};
@@ -54,112 +47,114 @@ function setup()
     % Create a new generator for the current matrix in the group directory.
     create_matrix_generator(pkg, ss_index, curr_mat);
   end
+end
 
-  function create_group_dir(curr_mat)
-  % Create directory.
-    mkdir(curr_mat.group_dir);
+function create_group_dir(curr_mat)
+% Create directory.
+  mkdir(curr_mat.group_dir);
 
-    % Create bridge function.
-    bridge_filename = [curr_mat.group_dir filesep...
-                       'anymatrix_' curr_mat.group_ID '.m'];
-    bridge_file = fopen(bridge_filename, 'w');
-    fprintf(bridge_file, ['function varargout = anymatrix_' curr_mat.group_ID...
-                          '(matrix_name, varargin)\n'...
-                          'handle = str2func([''ss_'' matrix_name]);\n'...
-                          '[varargout{1:nargout}]'...
-                          '= handle(varargin{1:nargin-1});\n end']);
-    fclose(bridge_file);
+  % Create bridge function.
+  bridge_filename = [curr_mat.group_dir filesep...
+                     'anymatrix_' curr_mat.group_ID '.m'];
+  bridge_file = fopen(bridge_filename, 'w');
+  fprintf(bridge_file, ['function varargout = anymatrix_' curr_mat.group_ID...
+                        '  (matrix_name, varargin)\n'...
+                        'handle = str2func([''ss_'' matrix_name]);\n'...
+                        '  [varargout{1:nargout}]'...
+                        '= handle(varargin{1:nargin-1});\n'...
+                        'end']);
+  fclose(bridge_file);
 
-    % Create 'private' and 'private/matfiles' directories.
-    % mkdir([group_dir filesep 'private']);
-    mkdir(curr_mat.group_matfiles_dir);
+  % Create 'private' and 'private/matfiles' directories.
+  % mkdir([group_dir filesep 'private']);
+  mkdir(curr_mat.group_matfiles_dir);
 
-    % Create parser function.
-    parser_filename = [curr_mat.group_private_dir filesep...
-                       'anymatrix_parser_' curr_mat.group_ID '.m'];
-    parser_file = fopen(parser_filename, 'w');
-    fprintf(parser_file, ['function parsed_name = '...
-                          'anymatrix_parser_' curr_mat.group_ID...
-                          '(matrix_name)\n'...
-                          '  parsed_name = '...
-                          'extractAfter(matrix_name, ''ss_'');\n'...
-                          'end']);
-    fclose(parser_file);
+  % Create parser function.
+  parser_filename = [curr_mat.group_private_dir filesep...
+                     'anymatrix_parser_' curr_mat.group_ID '.m'];
+  parser_file = fopen(parser_filename, 'w');
+  fprintf(parser_file, ['function parsed_name = '...
+                        'anymatrix_parser_' curr_mat.group_ID...
+                        '(matrix_name)\n'...
+                        '  parsed_name = '...
+                        'extractAfter(matrix_name, ''ss_'');\n'...
+                        'end']);
+  fclose(parser_file);
+end
+
+function create_matrix_generator(pkg, ss_index, curr_mat)
+% Get matrix properties.
+  curr_properties = create_matrix_property_array(pkg, ss_index, curr_mat);
+
+  % Generate matrix generator.
+  function_name = ['ss_' curr_mat.matrix_ID];
+  generator_filename = [curr_mat.group_private_dir filesep...
+                        function_name '.m'];
+  generator_file = fopen(generator_filename, 'w');
+  fprintf(generator_file, ['function [A, properties] = ' function_name '()\n'...
+                           '  matfile_name = '''...
+                           curr_mat.group_matfiles_dir filesep...
+                           curr_mat.matrix_ID '.mat'';\n'...
+                           '  if ~exist(matfile_name, ''file'')\n'...
+                           '    matfile_url = '''...
+                           pkg.ss_url '/mat/' curr_mat.group_ID...
+                           '/' curr_mat.matrix_ID '.mat'';\n'...
+                           '    websave(matfile_name, matfile_url);\n'...
+                           '  end\n'...
+                           '  tmp = load(matfile_name, ''Problem'');\n'...
+                           '  A = tmp.Problem.A;\n'...
+                           '  properties' '= {\n'...
+                           sprintf('%s    ''%s''',...
+                                   sprintf('    ''%s'',\n',...
+                                           curr_properties{1:end-1}),...
+                                   curr_properties{end}) '\n'...
+                           '  };\nend']);
+  fclose(generator_file);
+end
+
+function properties = create_matrix_property_array(pkg, ss_index, curr_mat)
+% Donwload corresponding SVD MAT file (only available for small matrices).
+  svd_matfile_url = [pkg.ss_url '/svd/' curr_mat.group_ID '/'...
+                     curr_mat.matrix_ID '_SVD.mat'];
+  svd_matfile_name = [pkg.ss_matfiles_dir filesep...
+                      curr_mat.matrix_ID '_SVD.mat'];
+  try
+    websave(svd_matfile_name, svd_matfile_url);
+    curr_mat.has_svd = true;
+    tmp = load(svd_matfile_name);
+    curr_mat.sigma_min = min(tmp.S.s);
+    curr_mat.sigma_max = max(tmp.S.s);
+  catch
+    curr_mat.has_svd = false;
   end
 
-  function create_matrix_generator(pkg, ss_index, curr_mat)
-  % Get matrix properties.
-    curr_properties = create_matrix_property_array(pkg, ss_index, curr_mat);
+  candidates = prop_list();
+  properties = {};
+  % warning('off', 'MATLAB:str2func:invalidFunctionName');
+  for j = 1:length(candidates)
+    curr_property = candidates{j};
+    curr_normalized_property = strrep(...
+        strrep(curr_property, ' ', '_'), '-', '_');
 
-    % Generate matrix generator.
-    function_name = ['ss_' curr_mat.matrix_ID];
-    generator_filename = [curr_mat.group_private_dir filesep...
-                          function_name '.m'];
-    generator_file = fopen(generator_filename, 'w');
-    fprintf(generator_file, ['function [A, properties] = ' function_name '()\n'...
-                             '  matfile_name = '''...
-                             curr_mat.group_matfiles_dir filesep...
-                             curr_mat.matrix_ID '.mat'';\n'...
-                             '  if ~exist(matfile_name, ''file'')\n'...
-                             '    matfile_url = '''...
-                             pkg.ss_url '/mat/' curr_mat.group_ID...
-                             '/' curr_mat.matrix_ID '.mat'';\n'...
-                             '    websave(matfile_name, matfile_url);\n'...
-                             '  end\n'...
-                             '  tmp = load(matfile_name, ''Problem'');\n'...
-                             '  A = tmp.Problem.A;\n'...
-                             '  properties' '= {\n'...
-                             sprintf('%s    ''%s''',...
-                                     sprintf('    ''%s'',\n',...
-                                             curr_properties{1:end-1}),...
-                                     curr_properties{end}) '\n'...
-                             '  };\nend']);
-    fclose(generator_file);
-  end
+    curr_handle = str2func(['is_' curr_normalized_property]);
 
-  function properties = create_matrix_property_array(pkg, ss_index, curr_mat)
-  % Donwload corresponding SVD MAT file (only available for small matrices).
-    svd_matfile_url = [pkg.ss_url '/svd/' curr_mat.group_ID '/'...
-                       curr_mat.matrix_ID '_SVD.mat'];
-    svd_matfile_name = [pkg.ss_matfiles_dir filesep...
-                        curr_mat.matrix_ID '_SVD.mat'];
-    try
-      websave(svd_matfile_name, svd_matfile_url);
-      curr_mat.has_svd = true;
-      tmp = load(svd_matfile_name);
-      curr_mat.sigma_min = min(tmp.S.s);
-      curr_mat.sigma_max = max(tmp.S.s);
-    catch
-      curr_mat.has_svd = false;
+    if curr_handle(curr_mat, ss_index)
+      properties{end+1} = curr_property;
     end
-
-    candidates = prop_list();
-    properties = {};
-    warning('off', 'MATLAB:str2func:invalidFunctionName');
-    for j = 1:length(candidates)
-      curr_property = candidates{j};
-      curr_normalized_property = strrep(...
-          strrep(curr_property, ' ', '_'), '-', '_');
-
-      curr_handle = str2func(['setup/is_' curr_normalized_property]);
-
-      if curr_handle(curr_mat, ss_index)
-        properties{end+1} = curr_property;
-      end
-
-    end
-    warning('on', 'MATLAB:str2func:invalidFunctionName');
   end
+  properties
+  % warning('on', 'MATLAB:str2func:invalidFunctionName');
+end
 
-  function out = is_banded(curr_mat, ss_index)
-    out = ss_index.lowerbandwidth(curr_mat.index) < ...
-          ss_index.nrows(curr_mat.index) || ...
-          ss_index.upperbandwidth(curr_mat.index) < ...
-          ss_index.ncols(curr_mat.index);
-  end
+function out = is_banded(curr_mat, ss_index)
+  out = ss_index.lowerbandwidth(curr_mat.index) < ...
+        ss_index.nrows(curr_mat.index) || ...
+        ss_index.upperbandwidth(curr_mat.index) < ...
+        ss_index.ncols(curr_mat.index);
+end
 
-  function out = is_binary(curr_mat, ss_index)
-    out = ss_index.isBinary(curr_mat.index);
+function out = is_binary(curr_mat, ss_index)
+  out = ss_index.isBinary(curr_mat.index);
 end
 
 function out = is_block_Toeplitz(curr_mat, ss_index)
@@ -367,6 +362,4 @@ end
 
 function out = is_unitary(curr_mat, ss_index)
   out = false; % Property not available.
-end
-
 end
