@@ -7,4 +7,5 @@ function setup()
 
   % Create all group directories.
   update_suitesparse_groups(pkg, ss_index);
+  update_timestamp(pkg, ss_index);
 end

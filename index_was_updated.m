@@ -1,8 +1,8 @@
-function new_version_found = index_was_updated(pkg, ss_index)
+function new_version_found = index_is_newer(pkg, ss_index)
 % Check if the SS_INDEX is newer than last version that was processed.
 % The function uses a timestamp file.
-  timestamp_filename = './timestamp';
-  timestamp_abs_path = [pkg.ss_private_root_dir filesep timestamp_filename];
+
+  timestamp_abs_path = compute_timestamp_path(pkg);
 
   new_version_found = true;
   if exist(timestamp_abs_path, 'file')
@@ -14,13 +14,5 @@ function new_version_found = index_was_updated(pkg, ss_index)
       % No need to update, index file has not changed.
       new_version_found = false;
     end
-  end
-
-  % If the index file has changed or this is the first time the collection is
-  % generated, then update the timestamp.
-  if new_version_found
-    timestamp_file = fopen(timestamp_abs_path, 'w');
-    fprintf(timestamp_file, ss_index.LastRevisionDate);
-    fclose(timestamp_file);
   end
 end

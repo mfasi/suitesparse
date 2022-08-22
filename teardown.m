@@ -9,4 +9,11 @@ function teardown()
       rmdir(group_dir, 's');
     end
   end
+
+  % Delete timestamp file.
+  timestamp_abs_path = compute_timestamp_path(pkg);
+  if exist(timestamp_abs_path, 'file')
+    delete(timestamp_abs_path);
+  end
+
 end

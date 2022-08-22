@@ -6,5 +6,6 @@ function update()
   ss_index = update_and_load_index(pkg);
   if index_was_updated(pkg, ss_index)
     update_suitesparse_groups(pkg, ss_index);
+    update_timestamp(pkg, ss_index);
   end
 end
