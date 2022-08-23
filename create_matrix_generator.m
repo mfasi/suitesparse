@@ -47,7 +47,7 @@ function properties = create_matrix_property_array(pkg, ss_index, curr_mat)
   end
 
   candidates = prop_list();
-  properties = {};
+  properties = cell(0);
   for j = 1:length(candidates)
     curr_property = candidates{j};
     curr_normalized_property = strrep(...
