@@ -22,7 +22,7 @@ The matrices in a group can be listed with
 anymatrix('g', '<group_name>')
 ```
 and a specific matrix can be generated with the command
-```MATALB
+```MATLAB
 anymatrix('<group_name>/<matrix_name>')
 ```
 
