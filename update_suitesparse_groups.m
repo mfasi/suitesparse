@@ -1,5 +1,13 @@
 function update_suitesparse_groups(pkg, ss_index)
-% Generate the matrix generators in ephemeral groups.
+% UPDATE_SUITESPARSE_GROUPS Update groups and corresponding matrix generators.
+%   UPDATE_SUITESPARSE_GROUPS(PKG,SS_INDEX) crates a directory in the current
+%   Anymatrix installation for each group in SS_INDEX, and then produces a
+%   matrix generator for each matrix in the index.
+%
+%  See also GET_PKG_INFO, UPDATE_AND_LOAD_INDEX, CREATE_GROUP_DIRECTORY,
+%  CREATE_MATRIX_GENERATOR.
+
+  % Generate the matrix generators in ephemeral groups.
   if ~exist(pkg.ss_matfiles_dir)
     mkdir(pkg.ss_matfiles_dir);
   end

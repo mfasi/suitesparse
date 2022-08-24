@@ -1,5 +1,12 @@
 function create_group_directory(curr_mat)
-% Create directory.
+% CREATE_GROUP_DIRECTORY Create a new directory for an Anymatrix group.
+%  CREATE_GROUP_DIRECTORY(CURR_MAT) creates a new directory for the matrix
+%  specified by the CURR_MAT struct. The latter is generated within the
+%  UPDATE_SUITESPARSE_GROUPS function.
+%
+%  See also UPDATE_SUITESPARSE_GROUPS.
+
+  % Create directory.
   mkdir(curr_mat.group_dir);
   normalized_group_name = strrep(curr_mat.group_ID, '-', '_');
 

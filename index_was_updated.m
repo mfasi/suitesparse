@@ -1,6 +1,10 @@
-function new_version_found = index_is_newer(pkg, ss_index)
-% Check if the SS_INDEX is newer than last version that was processed.
-% The function uses a timestamp file.
+function new_version_found = index_was_updated(pkg, ss_index)
+% INDEX_WAS_UPDATED Check if the index file has been updated.
+%  NEW_VERSION_FOUND = INDEX_WAS_UPDATED(PKG,SS_INDEX) is true if the timestamp of
+%  SS_INDEX is more recent that that of SuiteSparse group as specified in PKG,
+%  and false otherwise.
+%
+%  See also GET_PKG_INFO, UPDATE_AND_LOAD_INDEX, UPDATE_TIMESTAMP.
 
   timestamp_abs_path = compute_timestamp_path(pkg);
 

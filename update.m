@@ -1,4 +1,5 @@
 function update()
+% Update Update the Anymatrix interface to the SuiteSparse Matrix Collection.
 
   pkg = get_pkg_info();
 

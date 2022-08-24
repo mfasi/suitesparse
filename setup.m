@@ -1,4 +1,5 @@
 function setup()
+% SETUP Generate the Anymatrix interface to the SuiteSparse Matrix Collection.
 
   pkg = get_pkg_info();
 

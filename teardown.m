@@ -1,5 +1,7 @@
 function teardown()
-% Delete all groups under suitesparse control.
+% TEARDOWN Delete all Anymatrix groups in the SuiteSparse Matrix Collection.
+  
+  % Delete group directories.
   pkg = get_pkg_info();
   ss_index = update_and_load_index(pkg);
   for i = 1:length(ss_index.Name)
@@ -15,5 +17,4 @@ function teardown()
   if exist(timestamp_abs_path, 'file')
     delete(timestamp_abs_path);
   end
-
 end

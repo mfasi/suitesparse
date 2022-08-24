@@ -1,4 +1,14 @@
 function create_matrix_generator(pkg, ss_index, curr_mat)
+% CREATE_MATRIX_GENERATOR Generate a function returning a SuiteSparse matrix.
+%
+%  CREATE_MATRIX_GENERATOR(PKG,SS_INDEX,CURR_MAT) writes a matrix generator
+%  for CURR_MAT using the information in PKG and SS_INDEX. The first argument is
+%  generated within the UPDATE_SUITESPARSE_GROUPS function, the other two are
+%  returned by the GET_PKG_INFO and UPDATE_AND_LOAD_INDEX functions,
+%  respectively.
+%
+%  See also GET_PKG_INFO, UPDATE_AND_LOAD_INDEX, UPDATE_SUITESPARSE_GROUPS.
+
   % Get matrix properties.
   curr_properties = create_matrix_property_array(pkg, ss_index, curr_mat);
 
