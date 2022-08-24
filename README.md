@@ -77,4 +77,11 @@ ans =
 
 ## References
 
+[1] Scott Kolodziej, Mohsen Aznaveh, Matthew Bullock, Jarrett David, Timothy A. Davis, Matthew Henderson, Yifan Hu, and Read Sandstrom, [The SuiteSparse Matrix Collection Website Interface](https://doi.org/10.21105/joss.01244), Journal of Open Source Software, 4(35), 1244, March 2019.
+
+[2] Timothy A. Davis, Yifan Hu, [The University of Florida Sparse Matrix Collection](https://doi.org/10.1145/2049662.2049663), ACM Transactions on Mathematical Software, 38(1), pp. 1:1-1:25, December 2011.
+
+
 ## License
+
+This software is distributed under the terms of the [BSD 2-clause license](LICENSE.md).
