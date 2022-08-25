@@ -25,9 +25,9 @@ function update_suitesparse_groups(pkg, mat_index, csv_index)
       if ~strcmp(last_group, '')
         % Close property file.
         fprintf(curr_mat.group_property_file, '  };\n');
-        fclose(curr_mat.group_property_file)
+        fclose(curr_mat.group_property_file);
 
-        % Clone Contents.m file.
+        % Close Contents.m file.
 
       end
 
