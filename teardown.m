@@ -1,12 +1,12 @@
 function teardown()
 % TEARDOWN Delete all Anymatrix groups in the SuiteSparse Matrix Collection.
-  
-  % Delete group directories.
+
+% Delete group directories.
   pkg = get_pkg_info();
-  ss_index = update_and_load_index(pkg);
-  for i = 1:length(ss_index.Name)
+  mat_index = update_and_load_index(pkg);
+  for i = 1:length(mat_index.Name)
     % Create a new directory for the group of the current matrix, if necessary.
-    group_dir = [pkg.anymatrix_root_dir filesep ss_index.Group{i}];
+    group_dir = [pkg.anymatrix_root_dir filesep mat_index.Group{i}];
     if exist(group_dir, 'dir')
       rmdir(group_dir, 's');
     end
