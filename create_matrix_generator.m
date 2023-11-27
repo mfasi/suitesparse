@@ -85,6 +85,11 @@ function out = is_banded(curr_mat, mat_index)
         mat_index.ncols(curr_mat.index);
 end
 
+function out = is_bidiagonal(curr_mat, mat_index)
+  out = (mat_index.lowerbandwidth(curr_mat.index) + ...
+         mat_index.upperbandwidth(curr_mat.index)) == 1;
+end
+
 function out = is_binary(curr_mat, mat_index)
   out = mat_index.isBinary(curr_mat.index);
 end
@@ -95,6 +100,10 @@ end
 
 function out = is_built_in(curr_mat, mat_index)
   out = false;
+end
+
+function out = is_circulant(curr_mat, mat_index)
+  out = false;  % Property not available.
 end
 
 function out = is_complex(curr_mat, mat_index)
